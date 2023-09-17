@@ -37,6 +37,7 @@ impl fmt::Display for JsonError {
 
 impl std::error::Error for JsonError {}
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum JsonErrorKind {
     ParseErrorInObject,
@@ -47,6 +48,14 @@ pub enum JsonErrorKind {
     ParseErrorInBool,
     ParseErrorInNull,
     ParseErrorInArray,
+    SerializeErrorInObject,
+    SerializeErrorInKey,
+    SerializeErrorInValue,
+    SerializeErrorInString,
+    SerializeErrorInNumber,
+    SerializeErrorInBool,
+    SerializeErrorInNull,
+    SerializeErrorInArray,
 }
 
 struct JsonErrorMessage {
@@ -54,7 +63,7 @@ struct JsonErrorMessage {
     message: &'static str,
 }
 
-const JSON_ERR_MESSAGE: [JsonErrorMessage; 8] = [
+const JSON_ERR_MESSAGE: [JsonErrorMessage; 16] = [
     JsonErrorMessage {
         err_kind: JsonErrorKind::ParseErrorInObject,
         message: "No compatible format.",
@@ -85,6 +94,38 @@ const JSON_ERR_MESSAGE: [JsonErrorMessage; 8] = [
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::ParseErrorInArray,
+        message: "No compatible format.",
+    },
+    JsonErrorMessage {
+        err_kind: JsonErrorKind::SerializeErrorInObject,
+        message: "No compatible format.",
+    },
+    JsonErrorMessage {
+        err_kind: JsonErrorKind::SerializeErrorInKey,
+        message: "No compatible format.",
+    },
+    JsonErrorMessage {
+        err_kind: JsonErrorKind::SerializeErrorInValue,
+        message: "No compatible format.",
+    },
+    JsonErrorMessage {
+        err_kind: JsonErrorKind::ParseErrorInString,
+        message: "No compatible format.",
+    },
+    JsonErrorMessage {
+        err_kind: JsonErrorKind::SerializeErrorInNumber,
+        message: "No compatible format.",
+    },
+    JsonErrorMessage {
+        err_kind: JsonErrorKind::SerializeErrorInBool,
+        message: "No compatible format.",
+    },
+    JsonErrorMessage {
+        err_kind: JsonErrorKind::ParseErrorInNull,
+        message: "No compatible format.",
+    },
+    JsonErrorMessage {
+        err_kind: JsonErrorKind::SerializeErrorInArray,
         message: "No compatible format.",
     },
 ];

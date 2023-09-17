@@ -1,15 +1,13 @@
 //! This libary provides the following features:
 //! * Reading & writing json files.
 use std::rc::Rc;
+use std::cell::RefCell;
 use std::collections::HashMap;
 
 mod error;
-
 mod parser;
-
+mod serializer;
 mod tests;
-
-
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum JsonNumber {
@@ -30,13 +28,12 @@ impl JsonKey {
 
 #[derive(Clone, Debug)]
 pub enum JsonValue {
-    ValueObject(Rc<JsonObject>),
-    ValueArray(Vec<JsonValue>),
     ValueString(String),
     ValueNumber(JsonNumber),
     ValueBool(bool),
     ValueNull,
-    None,
+    ValueArray(Vec<JsonValue>),
+    ValueObject(Rc<RefCell<JsonObject>>),
 }
 
 #[derive(Clone, Debug)]
