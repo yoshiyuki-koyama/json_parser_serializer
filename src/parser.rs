@@ -43,21 +43,21 @@ enum ArraySeparatorKind {
 }
 
 #[derive(Clone, Debug)]
-pub struct JsonParser<'a> {
-    content_str: &'a str,
+pub struct JsonParser {
+    content_chars: Vec<char>,
     char_idx: usize,
 }
 
-impl JsonParser<'_> {
+impl JsonParser {
     #[allow(dead_code)]
-    pub fn parse<'a>(content_str:  &'a str) -> Result<JsonObject>  {
+    pub fn parse(content_str:  &str) -> Result<JsonObject>  {
         let mut json_parser = JsonParser::new(content_str);
         json_parser.object_parser()
     }
 
     fn new<'a>(content_str:  &'a str) -> JsonParser{
         JsonParser {
-            content_str: content_str,
+            content_chars: content_str.chars().collect(),
             char_idx: 0,
         }
     }
@@ -112,7 +112,7 @@ impl JsonParser<'_> {
                     }
                     
                 } 
-                if self.char_idx == self.content_str.chars().count() {
+                if self.char_idx == self.content_chars.len() {
                     return Err(parse_error(JsonErrorKind::ParseErrorInObject, "Object is not closed.", self.char_idx));
                 }
             }
@@ -121,7 +121,7 @@ impl JsonParser<'_> {
     }
 
     fn start_object_parser(&mut self) -> Result<StartObjectKind> {
-        for unicode_char in self.content_str.chars().skip(self.char_idx) {
+        for unicode_char in self.content_chars.iter().skip(self.char_idx) {
             match unicode_char {
                 '{' => {
                     self.char_idx += 1;
@@ -136,7 +136,7 @@ impl JsonParser<'_> {
             }
         }
         // 空オブジェクト判定処理
-        for unicode_char in self.content_str.chars().skip(self.char_idx) {
+        for unicode_char in self.content_chars.iter().skip(self.char_idx) {
             match unicode_char {
                 '}' => {
                     // '}' は end_member_parser で読み込みするためここではchar_idxの変更はなし。
@@ -158,7 +158,7 @@ impl JsonParser<'_> {
     }
 
     fn key_parser(&mut self) -> Result<JsonKey> {
-        for unicode_char in self.content_str.chars().skip(self.char_idx) {
+        for unicode_char in self.content_chars.iter().skip(self.char_idx) {
             match unicode_char {
                 '\"' => {
                     return Ok(JsonKey(self.string_parser()?));
@@ -175,7 +175,7 @@ impl JsonParser<'_> {
     }
 
     fn coron_parser(&mut self) -> Result<()> {
-        for unicode_char in self.content_str.chars().skip(self.char_idx) {
+        for unicode_char in self.content_chars.iter().skip(self.char_idx) {
             match unicode_char {
                 ':' => {
                     self.char_idx += 1;
@@ -193,32 +193,36 @@ impl JsonParser<'_> {
     }
 
     fn value_parser(&mut self) -> Result<JsonValue> {
-        for unicode_char in self.content_str.chars().skip(self.char_idx) {
-            match unicode_char {
-                '\"' => {
-                    return Ok(JsonValue::ValueString(self.string_parser()?));
-                }
-                '-' | ('0'..='9')  => {
-                    return Ok(JsonValue::ValueNumber(self.number_parser()?));
-                }
-                't' | 'f'  => {
-                    return Ok(JsonValue::ValueBool(self.bool_parser()?));
-                }
-                'n' => {
-                    self.null_parser()?;
-                    return Ok(JsonValue::ValueNull);
-                }
-                '[' => {
-                    return Ok(JsonValue::ValueArray(self.array_parser()?));
-                }
-                '{' => {
-                    return Ok(JsonValue::ValueObject(Rc::new(RefCell::new(self.object_parser()?))));
-                }
-                ' ' | '\t' | '\n' | '\r' => {
-                    self.blank_parser()?;
-                }
-                _ => {
-                    return Err(parse_error(JsonErrorKind::ParseErrorInValue, "Value: Expected any charcter that start value but found an another character.", self.char_idx));
+        // self.char_idx を更新しながらループを回すための2重ループ(loop、for)
+        loop {
+            for unicode_char in self.content_chars.iter().skip(self.char_idx) {
+                match unicode_char {
+                    '\"' => {
+                        return Ok(JsonValue::ValueString(self.string_parser()?));
+                    }
+                    '-' | ('0'..='9')  => {
+                        return Ok(JsonValue::ValueNumber(self.number_parser()?));
+                    }
+                    't' | 'f'  => {
+                        return Ok(JsonValue::ValueBool(self.bool_parser()?));
+                    }
+                    'n' => {
+                        self.null_parser()?;
+                        return Ok(JsonValue::ValueNull);
+                    }
+                    '[' => {
+                        return Ok(JsonValue::ValueArray(self.array_parser()?));
+                    }
+                    '{' => {
+                        return Ok(JsonValue::ValueObject(Rc::new(RefCell::new(self.object_parser()?))));
+                    }
+                    ' ' | '\t' | '\n' | '\r' => {
+                        self.blank_parser()?;
+                        break;
+                    }
+                    _ => {
+                        return Err(parse_error(JsonErrorKind::ParseErrorInValue, "Value: Expected any charcter that start value but found an another character.", self.char_idx));
+                    }
                 }
             }
         }
@@ -226,7 +230,7 @@ impl JsonParser<'_> {
     }
 
     fn end_member_parser(&mut self) -> Result<EndMemberKind> {
-        for unicode_char in self.content_str.chars().skip(self.char_idx) {
+        for unicode_char in self.content_chars.iter().skip(self.char_idx) {
             match unicode_char {
                 '}' => {
                     self.char_idx += 1;
@@ -249,7 +253,7 @@ impl JsonParser<'_> {
 
     // 連続で空白を処理するので、char_idxがその分増える。その前提で使う。
     fn blank_parser(&mut self) -> Result<()> {
-        for unicode_char in self.content_str.chars().skip(self.char_idx) {
+        for unicode_char in self.content_chars.iter().skip(self.char_idx) {
             match unicode_char {
                 ' ' | '\t' | '\n' | '\r' => {
                     self.char_idx += 1;
@@ -265,8 +269,8 @@ impl JsonParser<'_> {
     fn string_parser(&mut self) -> Result<String> {
         let mut string: String = String::new();
 
-        if let Some(unicode_char) = self.content_str.chars().nth(self.char_idx){
-            if unicode_char != '\"' {
+        if self.char_idx < self.content_chars.len() {
+            if self.content_chars[self.char_idx] != '\"' {
                 return Err(parse_error(JsonErrorKind::ParseErrorInString, "String: Expected \'\"\' but found an another character.", self.char_idx));
             }
         }
@@ -277,7 +281,7 @@ impl JsonParser<'_> {
 
         // self.char_idx を更新しながらループを回すための2重ループ(loop、for)
         loop {
-            for unicode_char in self.content_str.chars().skip(self.char_idx) {
+            for unicode_char in self.content_chars.iter().skip(self.char_idx) {
                 match unicode_char {
                     '\"' => {
                         self.char_idx += 1;
@@ -289,11 +293,11 @@ impl JsonParser<'_> {
                     }
                     _ => {
                         self.char_idx += 1;
-                        string.push(unicode_char);
+                        string.push(*unicode_char);
                     }
                 }
             }
-            if self.char_idx == self.content_str.chars().count() {
+            if self.char_idx == self.content_chars.len() {
                 return Err(parse_error(JsonErrorKind::ParseErrorInString, "String: Object is not closed.", self.char_idx));
             }
         }
@@ -302,19 +306,19 @@ impl JsonParser<'_> {
     
 
     fn escape_string_parser(&mut self) -> Result<char> {
-        if self.content_str.chars().count() <= self.char_idx {
+        if self.char_idx >= self.content_chars.len() {
             return Err(parse_error(JsonErrorKind::ParseErrorInString, "EscapeString: Object is not closed.", self.char_idx));
         }
-        if '\\' != self.content_str.chars().nth(self.char_idx).unwrap() {
+        if '\\' != self.content_chars[self.char_idx] {
             return Err(parse_error(JsonErrorKind::ParseErrorInString, "EscapeString: Expected \'\\\' but found an another character.", self.char_idx));
         }
         self.char_idx += 1;
 
-        if let Some(unicode_char) = self.content_str.chars().nth(self.char_idx) {
-            match unicode_char {
+        if self.char_idx < self.content_chars.len() {
+            match self.content_chars[self.char_idx] {
                 '\"' | '\\' | '/' => {
                     self.char_idx += 1;
-                    return Ok(unicode_char);
+                    return Ok(self.content_chars[self.char_idx]);
                 }
                 'b' => {
                     self.char_idx += 1;
@@ -356,23 +360,23 @@ impl JsonParser<'_> {
             let mut unicode_hex: String = String::new();
 
             if utf16_vec.len() > 0 {
-                if self.content_str.chars().count() <= self.char_idx + 1 {
+                if self.char_idx + 1 >= self.content_chars.len() {
                     return Err(parse_error(JsonErrorKind::ParseErrorInString, "EscapeString: Object is not closed.", self.char_idx));
                 }
-                if '\\' != self.content_str.chars().nth(self.char_idx).unwrap()
-                || 'u' != self.content_str.chars().nth(self.char_idx + 1).unwrap(){
+                if '\\' != self.content_chars[self.char_idx]
+                || 'u' != self.content_chars[self.char_idx + 1 ] {
                     return Err(parse_error(JsonErrorKind::ParseErrorInString, "EscapeString: Expected \"\\u\" but found an another character.", self.char_idx));
                 }
                 self.char_idx += 2;
             }
 
-            for unicode_char in self.content_str.chars().skip(self.char_idx) {
+            for unicode_char in self.content_chars.iter().skip(self.char_idx) {
                 self.char_idx += 1;
-                if '0' <= unicode_char && unicode_char <= '9'
-                || 'a' <= unicode_char && unicode_char <= 'f'
-                || 'A' <= unicode_char && unicode_char <= 'F'
+                if '0' <= *unicode_char && *unicode_char <= '9'
+                || 'a' <= *unicode_char && *unicode_char <= 'f'
+                || 'A' <= *unicode_char && *unicode_char <= 'F'
                 {
-                    unicode_hex.push(unicode_char);
+                    unicode_hex.push(*unicode_char);
                 }
                 else {
                     return Err(parse_error(JsonErrorKind::ParseErrorInString, "EscapeString: Expected any Hexadecimal character but found an another character.", self.char_idx));
@@ -412,12 +416,12 @@ impl JsonParser<'_> {
         // integer or float 判定用
         let mut decimal_point_existed: bool = false;
 
-        for unicode_char in self.content_str.chars().skip(self.char_idx) {
+        for unicode_char in self.content_chars.iter().skip(self.char_idx) {
             match unicode_char {
                 '-'  => {
                     if arrow_sign_char {
                         self.char_idx += 1;
-                        number_string.push(unicode_char);
+                        number_string.push(*unicode_char);
                     }
                     else {
                         return Err(parse_error(JsonErrorKind::ParseErrorInNumber, "Number: \'-\'s position is not allowed.", self.char_idx));
@@ -427,7 +431,7 @@ impl JsonParser<'_> {
                 '+'  => {
                     if arrow_sign_char && is_exp_notation {
                         self.char_idx += 1;
-                        number_string.push(unicode_char);
+                        number_string.push(*unicode_char);
                     }
                     else {
                         return Err(parse_error(JsonErrorKind::ParseErrorInNumber, "Number: \'+\'s position is not allowed.", self.char_idx));
@@ -437,7 +441,7 @@ impl JsonParser<'_> {
                 '.'  => {
                     if digit_existed && !decimal_point_existed && !is_exp_notation {
                         self.char_idx += 1;
-                        number_string.push(unicode_char);
+                        number_string.push(*unicode_char);
                         decimal_point_existed = true;
                     }
                     else {
@@ -446,7 +450,7 @@ impl JsonParser<'_> {
                 }
                 ('0'..='9')  => {
                     self.char_idx += 1;
-                    number_string.push(unicode_char);
+                    number_string.push(*unicode_char);
                     digit_existed = true;
                     arrow_sign_char = false;
                 }
@@ -455,7 +459,7 @@ impl JsonParser<'_> {
                         self.char_idx += 1;
                         is_exp_notation = true;
                         arrow_sign_char = true;
-                        number_string.push(unicode_char);
+                        number_string.push(*unicode_char);
                     }
                     else {
                         return Err(parse_error(JsonErrorKind::ParseErrorInNumber, "Number: \'e\' or \'E\'s position is not allowed.", self.char_idx));
@@ -489,17 +493,17 @@ impl JsonParser<'_> {
 
     fn bool_parser(&mut self) -> Result<bool> {
         let mut bool_string: String = String::new();
-        let is_string_true: bool = if self.content_str.chars().nth(self.char_idx).unwrap() == 't' {
+        let is_string_true: bool = if self.content_chars[self.char_idx] == 't' {
             true
         }
-        else if self.content_str.chars().nth(self.char_idx).unwrap() == 'f' {
+        else if self.content_chars[self.char_idx] == 'f' {
             false
         }
         else {
             return Err(parse_error(JsonErrorKind::ParseErrorInBool, "Bool: Expected any bool character but found an another character.", self.char_idx));
         };
 
-        for unicode_char in self.content_str.chars().skip(self.char_idx) {
+        for unicode_char in self.content_chars.iter().skip(self.char_idx) {
             match unicode_char {
                 ' ' | '\t' | '\n' | '\r'  | ',' | '}' | ']' => {
                     if is_string_true {
@@ -516,7 +520,7 @@ impl JsonParser<'_> {
                 }
                 _ => {
                     self.char_idx += 1;
-                    bool_string.push(unicode_char);
+                    bool_string.push(*unicode_char);
                     if bool_string.len() > 5 {
                         return Err(parse_error(JsonErrorKind::ParseErrorInBool, "Bool: Expected \"true\" or \"false\" but found an too long string.", self.char_idx));
                     }
@@ -529,7 +533,7 @@ impl JsonParser<'_> {
     fn null_parser(&mut self) -> Result<()> {
         let mut null_string: String = String::new();
 
-        for unicode_char in self.content_str.chars().skip(self.char_idx) {
+        for unicode_char in self.content_chars.iter().skip(self.char_idx) {
             match unicode_char {
                 ' ' | '\t' | '\n' | '\r'  | ',' | '}'  | ']' => {
                     if null_string == "null" {
@@ -539,7 +543,7 @@ impl JsonParser<'_> {
                 }
                 _ => {
                     self.char_idx += 1;
-                    null_string.push(unicode_char);
+                    null_string.push(*unicode_char);
                     if null_string.len() > 4 {
                         return Err(parse_error(JsonErrorKind::ParseErrorInNull, "Null: Expected \"null\" but found an too long string.", self.char_idx));
                     }
@@ -550,10 +554,10 @@ impl JsonParser<'_> {
     }
 
     fn array_parser(&mut self) -> Result<Vec<JsonValue>> {
-        if self.content_str.chars().count() <= self.char_idx {
+        if self.char_idx >= self.content_chars.len() {
             return Err(parse_error(JsonErrorKind::ParseErrorInString, "Array: Object is not closed.", self.char_idx));
         }
-        if '[' != self.content_str.chars().nth(self.char_idx).unwrap() {
+        if '[' != self.content_chars[self.char_idx] {
             return Err(parse_error(JsonErrorKind::ParseErrorInString, "Array: Expected \'[\' but found an another character.", self.char_idx));
         }
         self.char_idx += 1;
@@ -562,7 +566,7 @@ impl JsonParser<'_> {
         let mut object_array_len: usize = object_array.len();
 
         // 空配列判定処理
-        for unicode_char in self.content_str.chars().skip(self.char_idx) {
+        for unicode_char in self.content_chars.iter().skip(self.char_idx) {
             match unicode_char {
                 ']' => {
                     self.char_idx += 1;
@@ -580,7 +584,7 @@ impl JsonParser<'_> {
 
         // self.char_idx を更新しながらループを回すための2重ループ(loop、for)
         'in_array_loop : loop {
-            for unicode_char in self.content_str.chars().skip(self.char_idx) {
+            for unicode_char in self.content_chars.iter().skip(self.char_idx) {
                 match unicode_char {
                     '\"' => {
                         object_array.push(JsonValue::ValueString(self.string_parser()?));
@@ -627,7 +631,7 @@ impl JsonParser<'_> {
                     }
                 }
             }
-            if self.char_idx == self.content_str.chars().count() {
+            if self.char_idx == self.content_chars.len() {
                 break 'in_array_loop;
             }
         }
@@ -635,7 +639,7 @@ impl JsonParser<'_> {
     }
 
     fn array_separator_parser(&mut self) -> Result<ArraySeparatorKind> {
-        for unicode_char in self.content_str.chars().skip(self.char_idx) {
+        for unicode_char in self.content_chars.iter().skip(self.char_idx) {
             match unicode_char {
                 ',' => {
                     self.char_idx += 1;
