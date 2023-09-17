@@ -52,7 +52,9 @@ impl JsonParser {
     #[allow(dead_code)]
     pub fn parse(content_str:  &str) -> Result<JsonObject>  {
         let mut json_parser = JsonParser::new(content_str);
-        json_parser.object_parser()
+        let res_json_object = json_parser.object_parser();
+        json_parser.content_chars.clear();
+        res_json_object
     }
 
     fn new<'a>(content_str:  &'a str) -> JsonParser{
