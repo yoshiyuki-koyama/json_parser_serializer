@@ -1,6 +1,5 @@
-
-
 use std::rc::Rc;
+use std::cell::RefCell;
 
 use super::{JsonKey, JsonValue, JsonNumber, JsonObject};
 
@@ -43,7 +42,7 @@ enum ArraySeparatorKind {
     EndArray
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub struct JsonParser<'a> {
     content_str: &'a str,
     char_idx: usize,
@@ -73,7 +72,7 @@ impl JsonParser<'_> {
                 match status {
                     MemberParserStatus::StartObject => {
                         // '{'を探す
-                        match Self::start_object_parser(self)? {
+                        match self.start_object_parser()? {
                             StartObjectKind::EmptyObject => {
                                 status = MemberParserStatus::EndMember;
                             }
@@ -84,24 +83,24 @@ impl JsonParser<'_> {
                     }
                     MemberParserStatus::Key => {
                         // Keyを探す
-                        key = Self::key_parser(self)?;
+                        key = self.key_parser()?;
                         status = MemberParserStatus::Coron;
                     }
                     MemberParserStatus::Coron => {
                         // ':'を探す
-                        Self::coron_parser(self)?;
+                        self.coron_parser()?;
                         status = MemberParserStatus::Value;
                     }
                     MemberParserStatus::Value => {
                         // 値の処理
-                        json_object.members.insert(key.clone(), Self::value_parser(self, &mut status)?);
+                        json_object.members.insert(key.clone(), self.value_parser()?);
                         status = MemberParserStatus::EndMember;
                     }
                     MemberParserStatus::EndMember => {
                         // ',' または '}' を探す。
                         // ',' なら次のオブジェクト内のメンバー、'}' ならオブジェクトが終わって親に帰る。
                         // (なお、"}," は '}' でオブジェクト終了したのち、 ',' で次のメンバー、という処理になる)
-                        match Self::end_member_parser(self)? {
+                        match self.end_member_parser()? {
                             EndMemberKind::EndMember => {
                                 status = MemberParserStatus::Key;
                                 break 'in_member_loop;
@@ -162,7 +161,7 @@ impl JsonParser<'_> {
         for unicode_char in self.content_str.chars().skip(self.char_idx) {
             match unicode_char {
                 '\"' => {
-                    return Ok(JsonKey(Self::string_parser(self)?));
+                    return Ok(JsonKey(self.string_parser()?));
                 }
                 ' ' | '\t' | '\n' | '\r' => {
                     self.char_idx += 1;
@@ -193,30 +192,30 @@ impl JsonParser<'_> {
         return Err(parse_error(JsonErrorKind::ParseErrorInObject, "Comma: Object is not closed.", self.char_idx));
     }
 
-    fn value_parser(&mut self, status: &mut MemberParserStatus) -> Result<JsonValue> {
+    fn value_parser(&mut self) -> Result<JsonValue> {
         for unicode_char in self.content_str.chars().skip(self.char_idx) {
             match unicode_char {
                 '\"' => {
-                    return Ok(JsonValue::ValueString(Self::string_parser(self)?));
+                    return Ok(JsonValue::ValueString(self.string_parser()?));
                 }
                 '-' | ('0'..='9')  => {
-                    return Ok(JsonValue::ValueNumber(Self::number_parser(self)?));
+                    return Ok(JsonValue::ValueNumber(self.number_parser()?));
                 }
                 't' | 'f'  => {
-                    return Ok(JsonValue::ValueBool(Self::bool_parser(self)?));
+                    return Ok(JsonValue::ValueBool(self.bool_parser()?));
                 }
                 'n' => {
-                    Self::null_parser(self)?;
+                    self.null_parser()?;
                     return Ok(JsonValue::ValueNull);
                 }
                 '[' => {
-                    return Ok(JsonValue::ValueArray(Self::array_parser(self, status)?));
+                    return Ok(JsonValue::ValueArray(self.array_parser()?));
                 }
                 '{' => {
-                    return Ok(JsonValue::ValueObject(Rc::new(Self::object_parser(self)?)));
+                    return Ok(JsonValue::ValueObject(Rc::new(RefCell::new(self.object_parser()?))));
                 }
                 ' ' | '\t' | '\n' | '\r' => {
-                    Self::blank_parser(self)?;
+                    self.blank_parser()?;
                 }
                 _ => {
                     return Err(parse_error(JsonErrorKind::ParseErrorInValue, "Value: Expected any charcter that start value but found an another character.", self.char_idx));
@@ -285,7 +284,7 @@ impl JsonParser<'_> {
                         return Ok(string);
                     }
                     '\\' => {
-                        string.push(Self::escape_string_parser(self)?);
+                        string.push(self.escape_string_parser()?);
                         break;
                     }
                     _ => {
@@ -340,7 +339,7 @@ impl JsonParser<'_> {
                 'u' => {
                     self.char_idx += 1;
                     // 'uXXXX'の処理
-                    return Self::escape_string_utf16(self);
+                    return self.escape_string_utf16();
                 }
                 _ => {
                     return Err(parse_error(JsonErrorKind::ParseErrorInString, "EscapeString: Expected any escaped character but found an another character.", self.char_idx));
@@ -550,7 +549,7 @@ impl JsonParser<'_> {
         return Err(parse_error(JsonErrorKind::ParseErrorInNull, "Null:  Object is not closed.", self.char_idx));
     }
 
-    fn array_parser(&mut self, status: &mut MemberParserStatus) -> Result<Vec<JsonValue>> {
+    fn array_parser(&mut self) -> Result<Vec<JsonValue>> {
         if self.content_str.chars().count() <= self.char_idx {
             return Err(parse_error(JsonErrorKind::ParseErrorInString, "Array: Object is not closed.", self.char_idx));
         }
@@ -584,32 +583,32 @@ impl JsonParser<'_> {
             for unicode_char in self.content_str.chars().skip(self.char_idx) {
                 match unicode_char {
                     '\"' => {
-                        object_array.push(JsonValue::ValueString(Self::string_parser(self)?));
+                        object_array.push(JsonValue::ValueString(self.string_parser()?));
                         break;
                     }
                     '-' | ('0'..='9')  => {
-                        object_array.push(JsonValue::ValueNumber(Self::number_parser(self)?));
+                        object_array.push(JsonValue::ValueNumber(self.number_parser()?));
                         break;
                     }
                     't' | 'f'  => {
-                        object_array.push(JsonValue::ValueBool(Self::bool_parser(self)?));
+                        object_array.push(JsonValue::ValueBool(self.bool_parser()?));
                         break;
                     }
                     'n' => {
-                        Self::null_parser(self)?;
+                        self.null_parser()?;
                         object_array.push(JsonValue::ValueNull);
                         break;
                     }
                     '[' => {
-                        object_array.push(JsonValue::ValueArray(Self::array_parser(self, status)?));
+                        object_array.push(JsonValue::ValueArray(self.array_parser()?));
                         break;
                     }
                     '{' => {
-                        object_array.push(JsonValue::ValueObject(Rc::new(Self::object_parser(self)?)));
+                        object_array.push(JsonValue::ValueObject(Rc::new(RefCell::new(self.object_parser()?))));
                         break;
                     }
                     ' ' | '\t' | '\n' | '\r' => {
-                        Self::blank_parser(self)?;
+                        self.blank_parser()?;
                         break;
                     }
                     _ => {
@@ -619,7 +618,7 @@ impl JsonParser<'_> {
             }
             if object_array.len() > object_array_len {
                 object_array_len = object_array.len();
-                match Self::array_separator_parser(self)? {
+                match self.array_separator_parser()? {
                     ArraySeparatorKind::EndElement => {
                         // Nothing to do (Go to Next element)
                     }
