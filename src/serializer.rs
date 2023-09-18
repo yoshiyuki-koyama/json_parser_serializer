@@ -123,13 +123,13 @@ impl JsonSerializer {
         }
     }
 
-    fn key_serializer(&mut self, json_key: &JsonKey, content_string: &mut String) -> Result<()> {
+    fn key_serializer(&self, json_key: &JsonKey, content_string: &mut String) -> Result<()> {
         content_string.push_str(&self.make_indent_string());
         self.string_serializer(&json_key.0, content_string)?;
         Ok(())
     }
 
-    fn coron_serializer(&mut self, content_string: &mut String) -> Result<()> {
+    fn coron_serializer(&self, content_string: &mut String) -> Result<()> {
         content_string.push_str(" : ");
         Ok(())
     }
@@ -159,7 +159,7 @@ impl JsonSerializer {
         Ok(())
     }
 
-    fn end_member_serializer(&mut self, content_string: &mut String) -> Result<()> {
+    fn end_member_serializer(&self, content_string: &mut String) -> Result<()> {
         content_string.push_str(",");
         content_string.push_str(&self.newline_str);
         Ok(())
@@ -173,7 +173,7 @@ impl JsonSerializer {
         Ok(())
     }
 
-    fn string_serializer(&mut self, json_string_str: &str, content_string: &mut String) -> Result<()> {
+    fn string_serializer(&self, json_string_str: &str, content_string: &mut String) -> Result<()> {
         content_string.push_str("\"");
         for unicode_char in json_string_str.chars() {
             match unicode_char {
@@ -211,7 +211,7 @@ impl JsonSerializer {
         Ok(())
     }
 
-    fn number_serializer(&mut self, json_number: &JsonNumber, content_string: &mut String) -> Result<()> {
+    fn number_serializer(&self, json_number: &JsonNumber, content_string: &mut String) -> Result<()> {
 
         match json_number {
             JsonNumber::JsonInt(int_number) => {
@@ -227,7 +227,7 @@ impl JsonSerializer {
         Ok(())
     }
 
-    fn bool_serializer(&mut self, json_bool: &bool, content_string: &mut String) -> Result<()> {
+    fn bool_serializer(&self, json_bool: &bool, content_string: &mut String) -> Result<()> {
         if *json_bool {
             content_string.push_str("true");
         }
@@ -237,7 +237,7 @@ impl JsonSerializer {
         Ok(())
     }
 
-    fn null_serializer(&mut self, content_string: &mut String) -> Result<()> {
+    fn null_serializer(&self, content_string: &mut String) -> Result<()> {
         content_string.push_str("null");
         Ok(())
     }
