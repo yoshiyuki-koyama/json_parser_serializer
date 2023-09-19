@@ -356,7 +356,7 @@ impl JsonParser {
             match unicode_char {
                 '\"' | '\\' | '/' => {
                     self.char_position.increment(unicode_char);
-                    return Ok(self.content_chars[self.char_position.get_idx()]);
+                    return Ok(*unicode_char);
                 }
                 'b' => {
                     self.char_position.increment(unicode_char);
@@ -410,11 +410,12 @@ impl JsonParser {
             }
 
             for unicode_char in self.content_chars.iter().skip(self.char_position.get_idx()) {
-                self.char_position.increment(unicode_char);
+
                 if '0' <= *unicode_char && *unicode_char <= '9'
                 || 'a' <= *unicode_char && *unicode_char <= 'f'
                 || 'A' <= *unicode_char && *unicode_char <= 'F'
                 {
+                    self.char_position.increment(unicode_char);
                     unicode_hex.push(*unicode_char);
                 }
                 else {
