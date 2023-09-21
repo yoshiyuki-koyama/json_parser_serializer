@@ -1,0 +1,6 @@
+{
+    "string" : "string",
+    "escape_string1" : "escape_string1 doublequate:\" reversesolidus:\\ solidus:\/",
+    "escape_string2" : "escape_string2 BS:\b FF:\f LF:\n CR:\r HT:\t",
+    "escape_string3" : "escape_string3 A:\u0041 あ:\u3042 GlowingStar:\uD83C\uDF1F"
+}

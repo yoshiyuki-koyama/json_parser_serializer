@@ -1,0 +1,17 @@
+{
+    "empty_array" : [],
+    "array_string" : [ "string1", "string2", "string3"],
+    "array_number" : [ 1, 2, 3, 4, 5],
+    "array_bool_null" : [ true, false, null],
+    "array_array" : [ [ "0,0", "0,1"], [ "1,0", "1,1"]],
+    "array_object" : [
+        {
+            "array_object_string" : "array_objct_string1",
+            "array_object_number" : 1.0
+        }, 
+        {
+            "array_object_string" : "array_objct_string2",
+            "array_object_number" : 2.0
+        }
+    ]
+}

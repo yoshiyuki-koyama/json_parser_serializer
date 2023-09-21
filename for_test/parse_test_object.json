@@ -1,0 +1,14 @@
+{
+    "empty_object" : {},
+    "object" : {
+        "object_string" : "object_string",
+        "object_number" : 1,
+        "object_bool" : true,
+        "object_null" : null,
+        "object_array" : [ 1, 2, 3],
+        "object_object" : {
+            "object_object_string" : "object_object_string",
+            "object_object_number" : 1
+        }
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "int" : 1,
+    "minus_int" : -1,
+    "float" : 0.1,
+    "minus_float" : -0.1,
+    "exp" : 1.5e3,
+    "minus_EXP" : -1.5E3,
+    "exp_plus" : 1.5e+3,
+    "minus_exp_minus" : -1.5e-3
+}
