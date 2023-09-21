@@ -1,4 +1,5 @@
-use super::{JsonKey, JsonValue, JsonNumber, JsonObject};
+//! JSON Serializer module.
+use super::{JsonKey, JsonValue, NumberType, JsonObject, JsonSerializerNewLineKind, JsonSerializerIndentKind};
 
 use super::error::*;
 
@@ -15,20 +16,7 @@ enum StartObjectKind {
 const NEWLINE_STR_CRLF :&str = "\u{000D}\u{000A}";
 const NEWLINE_STR_LF :&str = "\u{000A}";
 
-#[allow(dead_code)]
-#[derive(Clone, PartialEq)]
-pub enum JsonSerializerNewLineKind {
-    Lf,
-    Crlf
-}
-
-#[allow(dead_code)]
-#[derive(Clone, PartialEq)]
-pub enum JsonSerializerIndentKind {
-    Tab,
-    Space(usize),
-}
-
+/// JSON serializer struct.
 #[derive(Clone, Debug)]
 pub struct JsonSerializer {
     newline_str: &'static str,
@@ -36,7 +24,9 @@ pub struct JsonSerializer {
     indent_level: usize,
 }
 
+
 impl JsonSerializer {
+    /// Serialize JSON function.
     #[allow(dead_code)]
     pub fn serialize(json_object: &JsonObject, newline_kind: JsonSerializerNewLineKind, indent_kind: JsonSerializerIndentKind) -> Result<String> {
         let mut json_serializer:JsonSerializer = JsonSerializer::new(newline_kind, indent_kind);
@@ -211,13 +201,13 @@ impl JsonSerializer {
         Ok(())
     }
 
-    fn number_serializer(&self, json_number: &JsonNumber, content_string: &mut String) -> Result<()> {
+    fn number_serializer(&self, json_number: &NumberType, content_string: &mut String) -> Result<()> {
 
         match json_number {
-            JsonNumber::JsonInt(int_number) => {
+            NumberType::Int(int_number) => {
                 content_string.push_str(&format!("{}", int_number));
             }
-            JsonNumber::JsonFloat(float_number) => {
+            NumberType::Float(float_number) => {
                 if float_number.is_nan() || float_number.is_infinite() {
                     return Err(serialize_error(JsonErrorKind::SerializeErrorInNumber, "Number:  Number is NaN or Infinite.", &format!("{}", float_number)));
                 }
@@ -246,6 +236,7 @@ impl JsonSerializer {
         content_string.push_str("[");
 
         for (idx, json_value) in json_array.iter().enumerate() {
+            content_string.push_str(" ");
             match json_value {
                 JsonValue::ValueString(json_string) => {
                     self.string_serializer(json_string, content_string)?;

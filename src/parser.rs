@@ -1,7 +1,8 @@
+//! JSON Parser module.
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use super::{JsonKey, JsonValue, JsonNumber, JsonObject};
+use super::{JsonKey, JsonValue, NumberType, JsonObject};
 
 use super::error::*;
 
@@ -12,11 +13,11 @@ fn parse_error(kind: JsonErrorKind, detail_str: &str, char_position: &CharPositi
 
 #[derive(Clone, PartialEq)]
 enum MemberParserStatus {
-    StartObject, // '{'を探す
-    Key, // Keyを探す
-    Coron, // ':'を探す
-    Value, // 値の処理
-    EndMember, // ','または'}'または'},'を探す
+    StartObject,
+    Key,
+    Coron,
+    Value,
+    EndMember,
 }
 
 impl MemberParserStatus {
@@ -44,7 +45,7 @@ enum ArraySeparatorKind {
 }
 
 #[derive(Clone, PartialEq, Debug)]
-pub struct CharPosition {
+pub(crate) struct CharPosition {
     idx: usize,
     line: usize,
     first_idx_in_line: usize,
@@ -77,14 +78,15 @@ impl CharPosition {
     }
 }
 
-
+/// JSON perser struct.
 #[derive(Clone, Debug)]
-pub struct JsonParser {
+pub(crate) struct JsonParser {
     content_chars: Vec<char>,
     char_position: CharPosition,
 }
 
 impl JsonParser {
+    /// Parse JSON function.
     #[allow(dead_code)]
     pub fn parse(content_str:  &str) -> Result<JsonObject>  {
         let mut json_parser = JsonParser::new(content_str);
@@ -109,7 +111,6 @@ impl JsonParser {
             'in_member_loop : loop {
                 match status {
                     MemberParserStatus::StartObject => {
-                        // '{'を探す
                         match self.start_object_parser()? {
                             StartObjectKind::EmptyObject => {
                                 status = MemberParserStatus::EndMember;
@@ -120,17 +121,14 @@ impl JsonParser {
                         }
                     }
                     MemberParserStatus::Key => {
-                        // Keyを探す
                         key = self.key_parser()?;
                         status = MemberParserStatus::Coron;
                     }
                     MemberParserStatus::Coron => {
-                        // ':'を探す
                         self.coron_parser()?;
                         status = MemberParserStatus::Value;
                     }
                     MemberParserStatus::Value => {
-                        // 値の処理
                         json_object.members.insert(key.clone(), self.value_parser()?);
                         status = MemberParserStatus::EndMember;
                     }
@@ -446,7 +444,7 @@ impl JsonParser {
         }
     }
 
-    fn number_parser(&mut self) -> Result<JsonNumber> {
+    fn number_parser(&mut self) -> Result<NumberType> {
         let mut number_string: String = String::new();
         // '-'判定用
         let mut arrow_sign_char: bool = true;
@@ -508,7 +506,7 @@ impl JsonParser {
                 ' ' | '\t' | '\n' | '\r' | ',' | '}' | ']' => {
                     if decimal_point_existed || is_exp_notation {
                         if let Ok(float_number) = number_string.parse::<f64>() {
-                            return Ok(JsonNumber::JsonFloat(float_number));
+                            return Ok(NumberType::Float(float_number));
                         }
                         else {
                             return Err(parse_error(JsonErrorKind::ParseErrorInNumber, "Number: Number string could not be parsed to \"f64\".", &self.char_position));
@@ -516,7 +514,7 @@ impl JsonParser {
                     }
                     else {
                         if let Ok(int_number) = number_string.parse::<i64>() {
-                            return Ok(JsonNumber::JsonInt(int_number));
+                            return Ok(NumberType::Int(int_number));
                         }
                         else {
                             return Err(parse_error(JsonErrorKind::ParseErrorInNumber, "Number: Number string could not be parsed to \"i64\".", &self.char_position));
