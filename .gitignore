@@ -6,3 +6,6 @@
 
 # rustfmt
 **/*.rs.bk
+
+# test output dirctory
+/for_test/output/
