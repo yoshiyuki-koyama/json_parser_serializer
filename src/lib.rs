@@ -6,8 +6,8 @@ use std::collections::HashMap;
 mod error;
 mod parser;
 mod serializer;
-use parser::{JsonParser, CharPosition};
-use serializer::{JsonSerializer};
+use parser::JsonParser;
+use serializer::JsonSerializer;
 use error::*;
 
 
@@ -43,11 +43,34 @@ pub struct JsonObject {
 }
 
 impl JsonObject {
+    /// Create new empty JSON Onject.
+    /// * Return:
+    ///     * JSON Object struct.
     pub fn new(
     ) -> JsonObject {
         JsonObject {
             members: HashMap::new(),
         }
+    }
+
+    /// Parse JSON string to JSON Onject.
+    /// * Parameters:
+    ///     * `content_str` : JSON string(&str).
+    /// * Return:
+    ///     * JSON Object struct.
+    pub fn parse(content_str:  &str) -> Result<JsonObject> {
+        JsonParser::parse(content_str)
+    }
+
+    /// Serialize JSON object to string.
+    /// * Parameters:
+    ///     * `json_object` : JSON Object struct. 
+    ///     * `newline_kind` : Newline code(LF or CRLF) when serializing JSON.
+    ///     * `indent_kind` : Indent kind(Tab of Space) when serializing JSON.
+    /// * Return:
+    ///     * JSON string.
+    pub fn serialize(&self, newline_kind: JsonSerializerNewLineKind, indent_kind: JsonSerializerIndentKind) -> Result<String> {
+        JsonSerializer::serialize(self, newline_kind, indent_kind)
     }
 }
 
@@ -56,7 +79,7 @@ impl JsonObject {
 #[derive(Clone, PartialEq)]
 pub enum JsonSerializerNewLineKind {
     Lf,
-    Crlf
+    CrLf
 }
 
 /// Enum that specifies indent kind(Tab of Space) when serializing JSON. `Space(4)` means that specifies 4 spaces as indent.
@@ -65,24 +88,4 @@ pub enum JsonSerializerNewLineKind {
 pub enum JsonSerializerIndentKind {
     Tab,
     Space(usize),
-}
-
-/// Parse JSON string to JSON Onject.
-/// * Parameters:
-///     * `content_str` : JSON string(&str).
-/// * Return:
-///     * JSON Object struct.
-pub fn parse_json(content_str:  &str) -> Result<JsonObject> {
-    JsonParser::parse(content_str)
-}
-
-/// Serialize JSON object to string.
-/// * Parameters:
-///     * `json_object` : JSON Object struct. 
-///     * `newline_kind` : Newline code(LF or CRLF) when serializing JSON.
-///     * `indent_kind` : Indent kind(Tab of Space) when serializing JSON.
-/// * Return:
-///     * JSON string.
-pub fn serialize_json(json_object: &JsonObject, newline_kind: JsonSerializerNewLineKind, indent_kind: JsonSerializerIndentKind) -> Result<String> {
-    JsonSerializer::serialize(json_object, newline_kind, indent_kind)
 }

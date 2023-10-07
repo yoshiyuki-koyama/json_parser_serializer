@@ -41,7 +41,7 @@ impl JsonSerializer {
     fn new(newline_kind: JsonSerializerNewLineKind, indent_kind: JsonSerializerIndentKind) -> JsonSerializer {
         let newline_str: &'static str = {
             match newline_kind {
-                JsonSerializerNewLineKind::Crlf => {
+                JsonSerializerNewLineKind::CrLf => {
                     NEWLINE_STR_CRLF
                 }
                 JsonSerializerNewLineKind::Lf => {

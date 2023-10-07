@@ -66,66 +66,66 @@ struct JsonErrorMessage {
 const JSON_ERR_MESSAGE: [JsonErrorMessage; 16] = [
     JsonErrorMessage {
         err_kind: JsonErrorKind::ParseErrorInObject,
-        message: "No compatible format.",
+        message: "Parse error in object",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::ParseErrorInKey,
-        message: "No compatible format.",
+        message: "Parse error in key",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::ParseErrorInValue,
-        message: "No compatible format.",
+        message: "Parse error in value",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::ParseErrorInString,
-        message: "No compatible format.",
+        message: "Parse error in string",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::ParseErrorInNumber,
-        message: "No compatible format.",
+        message: "Parse error in number",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::ParseErrorInBool,
-        message: "No compatible format.",
+        message: "Parse error in bool",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::ParseErrorInNull,
-        message: "No compatible format.",
+        message: "Parse error in null",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::ParseErrorInArray,
-        message: "No compatible format.",
+        message: "Parse error in array",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::SerializeErrorInObject,
-        message: "No compatible format.",
+        message: "Serialize error in object",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::SerializeErrorInKey,
-        message: "No compatible format.",
+        message: "Serialize error in key",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::SerializeErrorInValue,
-        message: "No compatible format.",
+        message: "Serialize error in value",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::ParseErrorInString,
-        message: "No compatible format.",
+        message: "Serialize error in string",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::SerializeErrorInNumber,
-        message: "No compatible format.",
+        message: "Serialize error in number",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::SerializeErrorInBool,
-        message: "No compatible format.",
+        message: "Serialize error in bool",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::ParseErrorInNull,
-        message: "No compatible format.",
+        message: "Serialize error in null",
     },
     JsonErrorMessage {
         err_kind: JsonErrorKind::SerializeErrorInArray,
-        message: "No compatible format.",
+        message: "Serialize error in array",
     },
 ];
