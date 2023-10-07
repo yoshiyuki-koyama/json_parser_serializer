@@ -1,0 +1,36 @@
+{
+    "key_string" : "string",
+    "key_escape_string1" : "escape_string1 doublequate:\"  reversesolidus:\\ solidus:\/",
+    "key_escape_string2" : "escape_string2 BS:\b FF:\f LF:\n CR:\r HT:\t",
+    "key_escape_string3" : "escape_string3 A:\u0041 あ:\u3042 GlowingStar:\uD83C\uDF1F",
+    "key_int" : 1,
+    "key_minus_int" : -1,
+    "key_float" : 0.5,
+    "key_minus_float" : -2.5,
+    "key_exp" : 0.5e3,
+    "key_plus_exp" : 0.5e+3,
+    "key_minus_exp" : 0.5e-3,
+    "key_true" : true,
+    "key_false" : false,
+    "key_null" : null,
+    "key_array" : [ 1, 2, 3, 4, 5],
+    "array_array" : [ [ "0,0", "0,1"], [ "1,0", "1,1"]],
+    "key_empty_array" : [],
+    "key_object" : {
+        "key_object_string" : "object_string",
+        "key_child_int" : 2,
+        "key_true" : true
+    },
+    "key_empty_object" : {},
+    "key_array_object" : [
+        {
+            "key_array_object_string" : "array_objct_string1",
+            "key_array_object_float" : 1.0
+        }, 
+        {},{},
+        {
+            "key_array_object_string" : "array_objct_string2",
+            "key_array_object_float" : 2.0
+        }
+    ]
+}
