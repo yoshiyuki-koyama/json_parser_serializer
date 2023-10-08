@@ -1,14 +1,14 @@
 //! JSON Parser & Serializer library.
-use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 mod error;
 mod parser;
 mod serializer;
+use error::*;
 use parser::JsonParser;
 use serializer::JsonSerializer;
-use error::*;
 
 mod tests;
 
@@ -44,11 +44,8 @@ impl JsonObject {
     /// Create new empty JSON Onject.
     /// * Return:
     ///     * JSON Object struct.
-    pub fn new(
-    ) -> JsonObject {
-        JsonObject {
-            members: HashMap::new(),
-        }
+    pub fn new() -> JsonObject {
+        JsonObject { members: HashMap::new() }
     }
 
     /// Parse JSON string to JSON Onject.
@@ -56,13 +53,13 @@ impl JsonObject {
     ///     * `content_str` : JSON string(&str).
     /// * Return:
     ///     * JSON Object struct.
-    pub fn parse(content_str:  &str) -> Result<JsonObject> {
+    pub fn parse(content_str: &str) -> Result<JsonObject> {
         JsonParser::parse(content_str)
     }
 
     /// Serialize JSON object to string.
     /// * Parameters:
-    ///     * `json_object` : JSON Object struct. 
+    ///     * `json_object` : JSON Object struct.
     ///     * `newline_kind` : Newline code(LF or CRLF) when serializing JSON.
     ///     * `indent_kind` : Indent kind(Tab of Space) when serializing JSON.
     /// * Return:
@@ -77,7 +74,7 @@ impl JsonObject {
 #[derive(Clone, PartialEq)]
 pub enum JsonSerializerNewLineKind {
     Lf,
-    CrLf
+    CrLf,
 }
 
 /// Enum that specifies indent kind(Tab of Space) when serializing JSON. `Space(4)` means that specifies 4 spaces as indent.
