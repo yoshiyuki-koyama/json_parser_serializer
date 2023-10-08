@@ -2,7 +2,7 @@
 mod tests {
 
     use super::super::error::*;
-    use crate::{JsonKey, JsonObject, JsonSerializerNewLineKind, JsonValue, NumberType};
+    use crate::{JsonKey, JsonNumberType, JsonObject, JsonSerializerNewLineKind, JsonValue};
 
     use std::cell::RefCell;
     use std::fs::{create_dir, File};
@@ -53,17 +53,29 @@ mod tests {
 
         let json_object = JsonObject::parse(&content_string).unwrap();
         dbg!(json_object.clone());
-        member_assert_eq(&json_object, "int", &JsonValue::ValueNumber(NumberType::Int(1)));
-        member_assert_eq(&json_object, "minus_int", &JsonValue::ValueNumber(NumberType::Int(-1)));
-        member_assert_eq(&json_object, "float", &JsonValue::ValueNumber(NumberType::Float(0.1)));
-        member_assert_eq(&json_object, "minus_float", &JsonValue::ValueNumber(NumberType::Float(-0.1)));
-        member_assert_eq(&json_object, "exp", &JsonValue::ValueNumber(NumberType::Float(1500.0)));
-        member_assert_eq(&json_object, "minus_EXP", &JsonValue::ValueNumber(NumberType::Float(-1500.0)));
-        member_assert_eq(&json_object, "exp_plus", &JsonValue::ValueNumber(NumberType::Float(1500.0)));
+        member_assert_eq(&json_object, "int", &JsonValue::ValueNumber(JsonNumberType::Int(1)));
+        member_assert_eq(&json_object, "minus_int", &JsonValue::ValueNumber(JsonNumberType::Int(-1)));
+        member_assert_eq(&json_object, "float", &JsonValue::ValueNumber(JsonNumberType::Float(0.1)));
+        member_assert_eq(
+            &json_object,
+            "minus_float",
+            &JsonValue::ValueNumber(JsonNumberType::Float(-0.1)),
+        );
+        member_assert_eq(&json_object, "exp", &JsonValue::ValueNumber(JsonNumberType::Float(1500.0)));
+        member_assert_eq(
+            &json_object,
+            "minus_EXP",
+            &JsonValue::ValueNumber(JsonNumberType::Float(-1500.0)),
+        );
+        member_assert_eq(
+            &json_object,
+            "exp_plus",
+            &JsonValue::ValueNumber(JsonNumberType::Float(1500.0)),
+        );
         member_assert_eq(
             &json_object,
             "minus_exp_minus",
-            &JsonValue::ValueNumber(NumberType::Float(-0.0015)),
+            &JsonValue::ValueNumber(JsonNumberType::Float(-0.0015)),
         );
         assert_eq!(json_object.members.len(), 8);
         Ok(())
@@ -108,11 +120,11 @@ mod tests {
             &json_object,
             "array_number",
             &JsonValue::ValueArray(vec![
-                JsonValue::ValueNumber(NumberType::Int(1)),
-                JsonValue::ValueNumber(NumberType::Int(2)),
-                JsonValue::ValueNumber(NumberType::Int(3)),
-                JsonValue::ValueNumber(NumberType::Int(4)),
-                JsonValue::ValueNumber(NumberType::Int(5)),
+                JsonValue::ValueNumber(JsonNumberType::Int(1)),
+                JsonValue::ValueNumber(JsonNumberType::Int(2)),
+                JsonValue::ValueNumber(JsonNumberType::Int(3)),
+                JsonValue::ValueNumber(JsonNumberType::Int(4)),
+                JsonValue::ValueNumber(JsonNumberType::Int(5)),
             ]),
         );
         member_assert_eq(
@@ -149,7 +161,7 @@ mod tests {
                 member_assert_eq(
                     &child_json_object.borrow(),
                     "array_object_number",
-                    &JsonValue::ValueNumber(NumberType::Float(1.0)),
+                    &JsonValue::ValueNumber(JsonNumberType::Float(1.0)),
                 );
                 assert_eq!(child_json_object.borrow().members.len(), 2);
             }
@@ -162,7 +174,7 @@ mod tests {
                 member_assert_eq(
                     &child_json_object.borrow(),
                     "array_object_number",
-                    &JsonValue::ValueNumber(NumberType::Float(2.0)),
+                    &JsonValue::ValueNumber(JsonNumberType::Float(2.0)),
                 );
                 assert_eq!(child_json_object.borrow().members.len(), 2);
             }
@@ -197,7 +209,7 @@ mod tests {
             member_assert_eq(
                 &child_json_object.borrow(),
                 "object_number",
-                &JsonValue::ValueNumber(NumberType::Int(1)),
+                &JsonValue::ValueNumber(JsonNumberType::Int(1)),
             );
             member_assert_eq(&child_json_object.borrow(), "object_bool", &JsonValue::ValueBool(true));
             member_assert_eq(&child_json_object.borrow(), "object_null", &JsonValue::ValueNull);
@@ -205,9 +217,9 @@ mod tests {
                 &child_json_object.borrow(),
                 "object_array",
                 &JsonValue::ValueArray(vec![
-                    JsonValue::ValueNumber(NumberType::Int(1)),
-                    JsonValue::ValueNumber(NumberType::Int(2)),
-                    JsonValue::ValueNumber(NumberType::Int(3)),
+                    JsonValue::ValueNumber(JsonNumberType::Int(1)),
+                    JsonValue::ValueNumber(JsonNumberType::Int(2)),
+                    JsonValue::ValueNumber(JsonNumberType::Int(3)),
                 ]),
             );
             if let JsonValue::ValueObject(grand_child_json_object) = &child_json_object
@@ -224,7 +236,7 @@ mod tests {
                 member_assert_eq(
                     &grand_child_json_object.borrow(),
                     "object_object_number",
-                    &JsonValue::ValueNumber(NumberType::Int(1)),
+                    &JsonValue::ValueNumber(JsonNumberType::Int(1)),
                 );
                 assert_eq!(grand_child_json_object.borrow().members.len(), 2);
             }
@@ -293,19 +305,19 @@ mod tests {
         let mut json_object = JsonObject::new();
 
         let json_key = JsonKey("int".to_string());
-        let json_value = JsonValue::ValueNumber(NumberType::Int(1));
+        let json_value = JsonValue::ValueNumber(JsonNumberType::Int(1));
         json_object.members.insert(json_key, json_value);
 
         let json_key = JsonKey("minus_int".to_string());
-        let json_value = JsonValue::ValueNumber(NumberType::Int(-1));
+        let json_value = JsonValue::ValueNumber(JsonNumberType::Int(-1));
         json_object.members.insert(json_key, json_value);
 
         let json_key = JsonKey("float".to_string());
-        let json_value = JsonValue::ValueNumber(NumberType::Float(0.1));
+        let json_value = JsonValue::ValueNumber(JsonNumberType::Float(0.1));
         json_object.members.insert(json_key, json_value);
 
         let json_key = JsonKey("minus_float".to_string());
-        let json_value = JsonValue::ValueNumber(NumberType::Float(-0.1));
+        let json_value = JsonValue::ValueNumber(JsonNumberType::Float(-0.1));
         json_object.members.insert(json_key, json_value);
 
         let serialized_string = json_object
@@ -370,11 +382,11 @@ mod tests {
 
         let json_key = JsonKey("array_number".to_string());
         let json_value = JsonValue::ValueArray(vec![
-            JsonValue::ValueNumber(NumberType::Int(1)),
-            JsonValue::ValueNumber(NumberType::Int(2)),
-            JsonValue::ValueNumber(NumberType::Int(3)),
-            JsonValue::ValueNumber(NumberType::Int(4)),
-            JsonValue::ValueNumber(NumberType::Int(5)),
+            JsonValue::ValueNumber(JsonNumberType::Int(1)),
+            JsonValue::ValueNumber(JsonNumberType::Int(2)),
+            JsonValue::ValueNumber(JsonNumberType::Int(3)),
+            JsonValue::ValueNumber(JsonNumberType::Int(4)),
+            JsonValue::ValueNumber(JsonNumberType::Int(5)),
         ]);
         json_object.members.insert(json_key, json_value);
 
@@ -428,7 +440,7 @@ mod tests {
         // child object
         let mut json_child_object = JsonObject::new();
         let json_key = JsonKey("object_number".to_string());
-        let json_value = JsonValue::ValueNumber(NumberType::Int(1));
+        let json_value = JsonValue::ValueNumber(JsonNumberType::Int(1));
         json_child_object.members.insert(json_key, json_value);
 
         let mut json_object = JsonObject::new();

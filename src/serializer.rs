@@ -1,5 +1,5 @@
 //! JSON Serializer module.
-use super::{JsonKey, JsonObject, JsonSerializerIndentKind, JsonSerializerNewLineKind, JsonValue, NumberType};
+use super::{JsonKey, JsonNumberType, JsonObject, JsonSerializerIndentKind, JsonSerializerNewLineKind, JsonValue};
 
 use super::error::*;
 
@@ -199,12 +199,12 @@ impl JsonSerializer {
         Ok(())
     }
 
-    fn number_serializer(&self, json_number: &NumberType, content_string: &mut String) -> Result<()> {
+    fn number_serializer(&self, json_number: &JsonNumberType, content_string: &mut String) -> Result<()> {
         match json_number {
-            NumberType::Int(int_number) => {
+            JsonNumberType::Int(int_number) => {
                 content_string.push_str(&format!("{}", int_number));
             }
-            NumberType::Float(float_number) => {
+            JsonNumberType::Float(float_number) => {
                 if float_number.is_nan() || float_number.is_infinite() {
                     return Err(serialize_error(
                         JsonErrorKind::SerializeErrorInNumber,

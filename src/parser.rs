@@ -2,7 +2,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use super::{JsonKey, JsonObject, JsonValue, NumberType};
+use super::{JsonKey, JsonNumberType, JsonObject, JsonValue};
 
 use super::error::*;
 
@@ -538,7 +538,7 @@ impl JsonParser {
         }
     }
 
-    fn number_parser(&mut self) -> Result<NumberType> {
+    fn number_parser(&mut self) -> Result<JsonNumberType> {
         let mut number_string: String = String::new();
         // '-'判定用
         let mut arrow_sign_char: bool = true;
@@ -612,7 +612,7 @@ impl JsonParser {
                 ' ' | '\t' | '\n' | '\r' | ',' | '}' | ']' => {
                     if decimal_point_existed || is_exp_notation {
                         if let Ok(float_number) = number_string.parse::<f64>() {
-                            return Ok(NumberType::Float(float_number));
+                            return Ok(JsonNumberType::Float(float_number));
                         } else {
                             return Err(parse_error(
                                 JsonErrorKind::ParseErrorInNumber,
@@ -622,7 +622,7 @@ impl JsonParser {
                         }
                     } else {
                         if let Ok(int_number) = number_string.parse::<i64>() {
-                            return Ok(NumberType::Int(int_number));
+                            return Ok(JsonNumberType::Int(int_number));
                         } else {
                             return Err(parse_error(
                                 JsonErrorKind::ParseErrorInNumber,

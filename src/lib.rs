@@ -20,7 +20,7 @@ pub struct JsonKey(pub String);
 #[derive(Clone, Debug, PartialEq)]
 pub enum JsonValue {
     ValueString(String),
-    ValueNumber(NumberType),
+    ValueNumber(JsonNumberType),
     ValueBool(bool),
     ValueNull,
     ValueArray(Vec<JsonValue>),
@@ -29,7 +29,7 @@ pub enum JsonValue {
 
 /// JSON Number Value's enum.
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub enum NumberType {
+pub enum JsonNumberType {
     Int(i64),
     Float(f64),
 }
