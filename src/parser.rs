@@ -78,7 +78,7 @@ impl CharPosition {
     }
 }
 
-/// JSON perser struct.
+/// JSON parser struct.
 #[derive(Clone, Debug)]
 pub(crate) struct JsonParser {
     content_chars: Vec<char>,
