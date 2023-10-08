@@ -10,13 +10,11 @@ use parser::JsonParser;
 use serializer::JsonSerializer;
 use error::*;
 
-
-
 mod tests;
 
 /// JSON Key struct. JsonKey(String)
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct JsonKey(String);
+pub struct JsonKey(pub String);
 
 /// JSON Value's enum.
 #[derive(Clone, Debug, PartialEq)]
